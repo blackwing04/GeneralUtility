@@ -47,7 +47,45 @@ namespace ConvertCustomizeException
             CellValue = cellValue;
         }
     }
-  
+    /// <summary>
+    /// 無效的日期格式異常
+    /// </summary>
+    public class InvalidDateTimeFormatException : Exception
+    {
+        /// <summary>
+        /// 無效的日期格式異常
+        /// </summary>
+        public InvalidDateTimeFormatException()
+            : base("Invalid DateTime format.")
+        {
+        }
+    }
+    /// <summary>
+    /// 超過最大允許長度的異常
+    /// </summary>
+    public class ExceedsMaximumLengthException : Exception
+    {
+        /// <summary>
+        /// 超過最大允許長度的異常
+        /// </summary>
+        public ExceedsMaximumLengthException()
+            : base("The length of the cell value exceeds the maximum allowed length.")
+        {
+        }
+    }
+    /// <summary>
+    /// 無法將數值轉化成布林異常
+    /// </summary>
+    public class UnableToConvertToBooleanException : Exception
+    {
+        /// <summary>
+        /// 無法將數值轉換成布林異常
+        /// </summary>
+        public UnableToConvertToBooleanException()
+            : base("Unable to convert value to True/False.")
+        {
+        }
+    }
 }
 
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32;
+﻿using Generic.StaticUtil;
+using Microsoft.Win32;
 using UtilityUseDemo.Utils;
 
 namespace UtilityUseDemo
@@ -40,6 +41,7 @@ namespace UtilityUseDemo
         public static int CurrentDTNodeIndex { get; set; }
 
         private static bool _edited;
+
         /// /// <summary>
         /// 紀錄是否有修改
         /// </summary>
@@ -74,7 +76,7 @@ namespace UtilityUseDemo
                     return key;
                 }
                 catch (Exception e) {
-                    ExceptionHelper.RecordExceptionToLag(e);
+                    LogHelper<GlobalVariables>.HandleError(e);
                 }
                 return null;
             }
@@ -95,10 +97,10 @@ namespace UtilityUseDemo
                 try {
                     if (UserRegistryKey == null) return ConnectionStringFromRegistry;
                     var o = UserRegistryKey.GetValue(ConnStringRegistryValueName);
-                    if (o != null) ConnectionStringFromRegistry = CryptokiHelper.Decrypt(o.ToString()!);
+                    if (o != null) ConnectionStringFromRegistry = CryptoHelper.DecryptKey(o.ToString()!);
                 }
                 catch (Exception e) {
-                    ExceptionHelper.RecordExceptionToLag(e);
+                    LogHelper<GlobalVariables>.HandleError(e);
                     ConnectionStringFromRegistry = "";
                 }
                 return ConnectionStringFromRegistry;
@@ -108,7 +110,7 @@ namespace UtilityUseDemo
                 try {
                     if (string.IsNullOrEmpty(value)) return;
                     // encrypt ConnectionString string and save it to registry
-                    var encryptedString = CryptokiHelper.Encrypt(value);
+                    var encryptedString = CryptoHelper.Encrypted(value);
                     var key = UserRegistryKey;
 
                     if (key != null) {
@@ -118,7 +120,7 @@ namespace UtilityUseDemo
                     ConnectionStringFromRegistry = value;
                 }
                 catch (Exception e) {
-                    ExceptionHelper.RecordExceptionToLag(e);
+                    LogHelper<GlobalVariables>.HandleError(e);
                 }
             }
         }
