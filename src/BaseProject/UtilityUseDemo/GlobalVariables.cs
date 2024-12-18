@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32;
+﻿using Generic.StaticUtil;
+using Microsoft.Win32;
 using UtilityUseDemo.Utils;
 
 namespace UtilityUseDemo
@@ -74,7 +75,7 @@ namespace UtilityUseDemo
                     return key;
                 }
                 catch (Exception e) {
-                    ExceptionHelper.RecordExceptionToLag(e);
+                    LoggerHelper<GlobalVariables>.HandleError(e);
                 }
                 return null;
             }
@@ -98,7 +99,7 @@ namespace UtilityUseDemo
                     if (o != null) ConnectionStringFromRegistry = CryptokiHelper.Decrypt(o.ToString()!);
                 }
                 catch (Exception e) {
-                    ExceptionHelper.RecordExceptionToLag(e);
+                    LoggerHelper<GlobalVariables>.HandleError(e);
                     ConnectionStringFromRegistry = "";
                 }
                 return ConnectionStringFromRegistry;
@@ -118,7 +119,7 @@ namespace UtilityUseDemo
                     ConnectionStringFromRegistry = value;
                 }
                 catch (Exception e) {
-                    ExceptionHelper.RecordExceptionToLag(e);
+                    LoggerHelper<GlobalVariables>.HandleError(e);
                 }
             }
         }

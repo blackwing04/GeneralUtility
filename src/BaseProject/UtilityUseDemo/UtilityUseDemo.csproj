@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\DAO\DAO.csproj" />
     <ProjectReference Include="..\ExcelTool\ExcelTool.csproj" />
+    <ProjectReference Include="..\Generic.StaticUtil\Generic.StaticUtil.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.IO;
 using DAOStandard.StaticUtil;
 using static Generic.StaticUtil.Models.DataModel;
+using System.Transactions;
 
 namespace DAOStandard.Services.SQLOperation
 {
@@ -35,20 +36,20 @@ namespace DAOStandard.Services.SQLOperation
             var connectionString = new SqliteConnectionStringBuilder { DataSource = dbPath }.ToString();
 
             using (var connection = new SqliteConnection(connectionString))
-            try {
-                await connection.OpenAsync();
-                if (File.Exists(dbPath))
-                    ResultUtil.HandleSuccessfulResult(databaseResult, ResultString.CreateDatabaseSuccessfully, true);
-                else
-                    throw new InvalidOperationException(ResultString.ExecutedButDatabaseNotCreated);
-            }
-            catch (Exception ex) {
-                string message = $"{ResultString.CreateDatabaseFailed}{ex.Message}";
-                ResultUtil.HandleFailedResult(databaseResult, message, ex);
-            }
-            finally {
-                connection.Close();
-            }
+                try {
+                    await connection.OpenAsync();
+                    if (File.Exists(dbPath))
+                        ResultUtil.HandleSuccessfulResult(databaseResult, ResultString.CreateDatabaseSuccessfully, true);
+                    else
+                        throw new InvalidOperationException(ResultString.ExecutedButDatabaseNotCreated);
+                }
+                catch (Exception ex) {
+                    string message = $"{ResultString.CreateDatabaseFailed}{ex.Message}";
+                    ResultUtil.HandleFailedResult(databaseResult, message, ex);
+                }
+                finally {
+                    connection.Close();
+                }
             return databaseResult;
         }
         public async Task<NonQueryResultModel> CheckDataTableExistsAsync(TableSchemaModel tableSchema)
@@ -107,26 +108,42 @@ namespace DAOStandard.Services.SQLOperation
         public async Task<DbQueryResultModel<T>> OperationScalarAsync<T>(DatabaseConfigureModel dbModel)
         {
             DbQueryResultModel<T> databaseResult = new DbQueryResultModel<T>();
-            try {
-                using (SqliteCommand command = _connection.CreateCommand()) {
-                    command.CommandText = dbModel.SqlQuery.SqlQueryText;
-                    foreach (var param in dbModel.SqlQuery.Parameter) {
-                        string paramName = param.Key.StartsWith("@") ? param.Key : $"@{param.Key}";
-                        command.Parameters.AddWithValue(paramName, param.Value ?? DBNull.Value);
-                    }
-                    var result = await command.ExecuteScalarAsync();
-                    //設定模型狀態
-                    if (result is null)
-                        ResultUtil.HandleSuccessfulResult(databaseResult, ResultString.QuerySuccessfullyButEmpty);
-                    else if (result is T typedResult)
-                        ResultUtil.HandleSuccessfulResult(databaseResult, ResultString.QuerySuccessfully, typedResult);
-                    else
-                        ResultUtil.HandleFailedResult(databaseResult, ResultString.ResultConvertToGenericFailed);
+            using (var transaction = _connection.BeginTransaction()) {
+                if (transaction is null) {
+                    string message = $"{ResultString.TransactionTransformFailedOrEmpty}SqlTransaction";
+                    ResultUtil.HandleFailedResult(databaseResult, message, null);
+                    return databaseResult;
                 }
-            }
-            catch (Exception ex) {
-                string message = $"{ResultString.QueryFailed}{ex.Message}";
-                ResultUtil.HandleFailedResult(databaseResult, message, ex);
+                try {
+                    using (SqliteCommand command = _connection.CreateCommand()) {
+                        command.Transaction = transaction;
+                        command.CommandText = dbModel.SqlQuery.SqlQueryText;
+                        foreach (var param in dbModel.SqlQuery.Parameter) {
+                            string paramName = param.Key.StartsWith("@") ? param.Key : $"@{param.Key}";
+                            command.Parameters.AddWithValue(paramName, param.Value ?? DBNull.Value);
+                        }
+                        var result = await command.ExecuteScalarAsync();
+                        // 嘗試提交事務
+                        command.Transaction.Commit();
+                        //設定模型狀態
+                        try {
+                            // 將 result 轉換為目標類型 
+                            if (result is null) throw new InvalidCastException();
+                            T typedResult = (T)Convert.ChangeType(result, typeof(T));
+                            ResultUtil.HandleSuccessfulResult(databaseResult, ResultString.QuerySuccessfully, typedResult);
+                        }
+                        catch (InvalidCastException) {
+                            // 如果轉型失敗，則處理錯誤情況
+                            ResultUtil.HandleFailedResult(databaseResult, ResultString.ResultConvertToGenericFailed);
+                            // 如果有錯誤發生，Rollback事務
+                            transaction.Rollback();
+                        }
+                    }
+                }
+                catch (Exception ex) {
+                    string message = $"{ResultString.QueryFailed}{ex.Message}";
+                    ResultUtil.HandleFailedResult(databaseResult, message, ex);
+                }
             }
             return databaseResult;
         }
@@ -195,33 +212,33 @@ namespace DAOStandard.Services.SQLOperation
         {
             DbQueryResultModel<int> databaseResult = new DbQueryResultModel<int>();
             if (dbModel.ComparisonColumn.Count < 1) throw new Exception(ResultString.ComparisonColumnIsEmpty);
-            using (var transaction = _connection.BeginTransaction()) { 
+            using (var transaction = _connection.BeginTransaction()) {
                 try {
                     using (var command = _connection.CreateCommand()) {
-                    command.Transaction = transaction;
+                        command.Transaction = transaction;
 
-                    var columns = string.Join(", ", dbModel.SourceDataTable.Columns.Cast<DataColumn>()
+                        var columns = string.Join(", ", dbModel.SourceDataTable.Columns.Cast<DataColumn>()
                                 .Select(col => col.ColumnName));
-                    var conflictColumns = string.Join(", ", dbModel.ComparisonColumn);
-                    var updateSet = string.Join(", ", dbModel.SourceDataTable.Columns.Cast<DataColumn>()
+                        var conflictColumns = string.Join(", ", dbModel.ComparisonColumn);
+                        var updateSet = string.Join(", ", dbModel.SourceDataTable.Columns.Cast<DataColumn>()
                                     .Select(col => $"{col.ColumnName} = excluded.{col.ColumnName}"));
 
-                    StringBuilder sb = new StringBuilder();
+                        StringBuilder sb = new StringBuilder();
 
-                    foreach (DataRow row in dbModel.SourceDataTable.Rows) {
-                        var values = string.Join(", ", dbModel.SourceDataTable.Columns.Cast<DataColumn>()
+                        foreach (DataRow row in dbModel.SourceDataTable.Rows) {
+                            var values = string.Join(", ", dbModel.SourceDataTable.Columns.Cast<DataColumn>()
                         .Select(col => $"'{row[col.ColumnName]}'"));
 
-                        sb.AppendLine($@"
+                            sb.AppendLine($@"
                     INSERT INTO {dbModel.SourceDataTable.TableName} ({columns}) VALUES ({values})
                     ON CONFLICT ({conflictColumns}) DO UPDATE SET {updateSet};");
-                    }
+                        }
 
-                    command.CommandText = sb.ToString();
+                        command.CommandText = sb.ToString();
 
-                    var rowsAffected = await command.ExecuteNonQueryAsync();
-                    transaction.Commit();
-                    ResultUtil.HandleSuccessfulResult(databaseResult, ResultString.InsertOrUpdateSuccessfully, rowsAffected);
+                        var rowsAffected = await command.ExecuteNonQueryAsync();
+                        transaction.Commit();
+                        ResultUtil.HandleSuccessfulResult(databaseResult, ResultString.InsertOrUpdateSuccessfully, rowsAffected);
                     }
                 }
                 catch (Exception ex) {
@@ -237,7 +254,7 @@ namespace DAOStandard.Services.SQLOperation
             DbQueryResultModel<int> databaseResult = new DbQueryResultModel<int>()
             {
                 IsOperationSuccessful = false,
-                ResultString = $"SQLite {ResultString.UnsupportedStoredProced}",
+                ResultString = $"SQLite {ResultString.UnsupportedStoredProcedure}",
                 Result=0
             };
             return await Task.FromResult(databaseResult);

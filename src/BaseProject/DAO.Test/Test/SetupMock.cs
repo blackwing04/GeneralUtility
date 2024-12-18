@@ -8,7 +8,7 @@ public class SetupMock
     /// <returns>回傳設定好的模擬物件</returns>
     public static (Mock<DbConnection>, IDatabaseDAO) SetupDatabaseDAO()
     {
-        var connectionStringModel = CryptoHelper.CreateEncryptModel(Global.ConnectionString);
+        var connectionStringModel = StaticUtil.CryptoHelper.CreateEncryptModel(Global.ConnectionString);
         connectionStringModel.DatabaseType = DbTypeEnum.Mock;
         var mockDbConnection = new Mock<DbConnection>();
         mockDbConnection.Setup(m => m.OpenAsync(It.IsAny<CancellationToken>()))

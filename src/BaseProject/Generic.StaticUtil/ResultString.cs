@@ -8,9 +8,9 @@
         /// </summary>
         public const string UnsupportedDatabase ="Unsupported database type.";
         /// <summary>
-        /// 不支援的資料庫類型
+        /// 資料庫類型不支援預存函數
         /// </summary>
-        public const string UnsupportedStoredProced ="does not support stored procedures.";
+        public const string UnsupportedStoredProcedure ="does not support stored procedures.";
         /// <summary>
         /// 連線失敗(後方請自行帶入失敗的詳細原因)
         /// </summary>
@@ -24,7 +24,7 @@
         /// </summary>
         public const string TableSchemaIsEmpty ="Table schema cannot be null.";
         /// <summary>
-        /// 資料表結構不可為空
+        /// 無法將結果轉成泛型指定的類型
         /// </summary>
         public const string ResultConvertToGenericFailed ="Result object convert to generic T failed.";
         #endregion 錯誤

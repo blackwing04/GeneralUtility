@@ -262,18 +262,47 @@ namespace ExcelToolStandard.StaticUtil
                 if (string.IsNullOrWhiteSpace(cellValue)) {
                     return DBNull.Value;
                 }
-                //如果目標是時間型態，
-                if (targetType == typeof(DateTime) && cell.DataType == XLDataType.Number)
-                    return ConvertToDateTime(cellValue);
+                //如果目標是時間型態
+                if (targetType == typeof(DateTime)) {
+                    if (cell.DataType == XLDataType.Number)
+                        return ConvertToDateTime(cellValue);
+                    else {
+                        if (DateTime.TryParse(cellValue, out DateTime result))
+                            return result; // 成功解析則返回 DateTime 對象
+                        else
+                            throw new InvalidDateTimeFormatException(); // 解析失敗拋出異常
+                    }
+                }
+                //如果目標是布林型態
+                if (targetType == typeof(bool))
+                    return ConvertToBoolean(cellValue);
                 //如果目標是字串型態
                 if (targetType == typeof(string) && cellValue.Length > schemaColumn.Length)
-                    throw new Exception("The length of the cell value exceeds the maximum allowed length.");
+                    throw new ExceedsMaximumLengthException();
 
                 return Convert.ChangeType(cellValue, targetType);
             }
             catch { throw; }
         }
+        /// <summary>
+        /// 轉換字串為布林值。接受 "Y", "YES", "N", "NO" 等值，不區分大小寫。
+        /// </summary>
+        /// <param name="input">待轉換的字串。</param>
+        /// <returns>對應的布林值，如果輸入無效返回 null。</returns>
+        private static bool ConvertToBoolean(string input)
+        {
+            var booleanMappings = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase)
+            {
+                {"Y", true}, {"YES", true},
+                {"N", false}, {"NO", false},
+                {"TRUE", true}, {"FALSE", false}
+            };
 
+            if (booleanMappings.TryGetValue(input.Trim(), out bool result)) {
+                return result;
+            }
+            throw new UnableToConvertToBooleanException();
+        }
 
         /// <summary>
         /// 將值轉成時間型態

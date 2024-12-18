@@ -19,7 +19,7 @@ namespace DAOStandard.Services.SQLOperation
             DbQueryResultModel<bool> databaseResult = new DbQueryResultModel<bool>()
             {
                 IsOperationSuccessful = false,
-                ResultString = $"SQLite {ResultString.UnsupportedStoredProced}",
+                ResultString = $"SQLite {ResultString.UnsupportedStoredProcedure}",
                 Result=false
             };
             return await Task.FromResult(databaseResult);

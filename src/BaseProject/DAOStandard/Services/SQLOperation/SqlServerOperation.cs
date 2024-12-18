@@ -110,24 +110,43 @@ namespace DAOStandard.Services.SQLOperation
         public async Task<DbQueryResultModel<T>> OperationScalarAsync<T>(DatabaseConfigureModel dbModel)
         {
             DbQueryResultModel<T> databaseResult = new DbQueryResultModel<T>();
-            try {
-                using (SqlCommand command = _connection.CreateCommand()) {
-                    command.CommandText = dbModel.SqlQuery.SqlQueryText;
-                    foreach (var param in dbModel.SqlQuery.Parameter) {
-                        string paramName = param.Key.StartsWith("@") ? param.Key : $"@{param.Key}";
-                        command.Parameters.AddWithValue(paramName, param.Value ?? DBNull.Value);
+            using (var transaction = _connection.BeginTransaction()) {
+                try {
+                    if (transaction is null) {
+                        string message = $"{ResultString.TransactionTransformFailedOrEmpty}SqlTransaction";
+                        ResultUtil.HandleFailedResult(databaseResult, message, null);
+                        return databaseResult;
                     }
-                    var result = await command.ExecuteScalarAsync();
-                    //設定模型狀態
-                    if (result is T typedResult)
-                        ResultUtil.HandleSuccessfulResult(databaseResult, ResultString.QuerySuccessfully, typedResult);
-                    else
-                        ResultUtil.HandleFailedResult(databaseResult, ResultString.ResultConvertToGenericFailed);
+                    using (SqlCommand command = _connection.CreateCommand()) {
+                        command.Transaction = transaction;
+                        command.CommandText = dbModel.SqlQuery.SqlQueryText;
+                        foreach (var param in dbModel.SqlQuery.Parameter) {
+                            string paramName = param.Key.StartsWith("@") ? param.Key : $"@{param.Key}";
+                            command.Parameters.AddWithValue(paramName, param.Value ?? DBNull.Value);
+                        }
+                        var result = await command.ExecuteScalarAsync();
+                        // 嘗試提交事務
+                        command.Transaction.Commit();
+                        //設定模型狀態
+                        try {
+                            // 將 result 轉換為目標類型 
+                            T typedResult = (T)Convert.ChangeType(result, typeof(T));
+                            ResultUtil.HandleSuccessfulResult(databaseResult, ResultString.QuerySuccessfully, typedResult);
+                        }
+                        catch (InvalidCastException) {
+                            // 如果轉型失敗，則處理錯誤情況
+                            ResultUtil.HandleFailedResult(databaseResult, ResultString.ResultConvertToGenericFailed);
+                            // 如果有錯誤發生，Rollback事務
+                            transaction.Rollback();
+                        }
+                    }
                 }
-            }
-            catch (Exception ex) {
-                string message = $"{ResultString.QueryFailed}{ex.Message}";
-                ResultUtil.HandleFailedResult(databaseResult, message, ex);
+                catch (Exception ex) {
+                    string message = $"{ResultString.QueryFailed}{ex.Message}";
+                    ResultUtil.HandleFailedResult(databaseResult, message, ex);
+                    // 如果有錯誤發生，Rollback事務
+                    transaction.Rollback();
+                }
             }
             return databaseResult;
         }

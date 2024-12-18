@@ -98,21 +98,32 @@ namespace DAO.Services.SQLOperation
         public async Task<DbQueryResultModel<T>> OperationScalarAsync<T>(DatabaseConfigureModel dbModel)
         {
             DbQueryResultModel<T> databaseResult = new();
+            using var transaction = await _connection.BeginTransactionAsync() as SqliteTransaction ??
+                throw new Exception($"{ResultString.TransactionTransformFailedOrEmpty}SqliteTransaction");
             try {
                 using SqliteCommand command = _connection.CreateCommand();
+                command.Transaction = transaction;
                 command.CommandText = dbModel.SqlQuery.SqlQueryText;
                 foreach (var param in dbModel.SqlQuery.Parameter) {
                     string paramName = param.Key.StartsWith("@") ? param.Key : $"@{param.Key}";
                     command.Parameters.AddWithValue(paramName, param.Value ?? DBNull.Value);
                 }
                 var result = await command.ExecuteScalarAsync();
+                // 嘗試提交事務
+                await command.Transaction.CommitAsync();
                 //設定模型狀態
-                if (result is null)
-                    ResultUtil.HandleSuccessfulResult(databaseResult, ResultString.QuerySuccessfullyButEmpty);
-                else if (result is T typedResult)
+                try {
+                    // 將 result 轉換為目標類型 
+                    if (result is null) throw new InvalidCastException();
+                    T typedResult = (T)Convert.ChangeType(result, typeof(T));
                     ResultUtil.HandleSuccessfulResult(databaseResult, ResultString.QuerySuccessfully, typedResult);
-                else
+                }
+                catch (InvalidCastException) {
+                    // 如果轉型失敗，則處理錯誤情況
                     ResultUtil.HandleFailedResult(databaseResult, ResultString.ResultConvertToGenericFailed);
+                    // 如果有錯誤發生，Rollback事務
+                    transaction.Rollback();
+                }
             }
             catch (Exception ex) {
                 string message = $"{ResultString.QueryFailed}{ex.Message}";
@@ -225,7 +236,7 @@ namespace DAO.Services.SQLOperation
             DbQueryResultModel<int> databaseResult = new()
             {
                 IsOperationSuccessful = false,
-                ResultString = $"SQLite {ResultString.UnsupportedStoredProced}",
+                ResultString = $"SQLite {ResultString.UnsupportedStoredProcedure}",
                 Result=0
             };
             return await Task.FromResult(databaseResult);

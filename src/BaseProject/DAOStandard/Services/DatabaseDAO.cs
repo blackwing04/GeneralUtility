@@ -40,7 +40,7 @@ namespace DAOStandard.Services
         {
             int databaseTypeIndex =(int)connectionString.DatabaseType;
             _databaseTypeIndex = databaseTypeIndex;
-            _connectionString = CryptoHelper.DecryptString(connectionString);
+            _connectionString = StaticUtil.CryptoHelper.DecryptString(connectionString);
             DbModel = InitializeDbModel();
             //啟用SQLite
             if (connectionString.DatabaseType == DbTypeEnum.SQLite)
@@ -88,7 +88,7 @@ namespace DAOStandard.Services
         #region 資料庫連線方法
         public void ChangeDatabaseConnection(CryptoConnectionStringModel newConnectionString)
         {
-            _connectionString = CryptoHelper.DecryptString(newConnectionString);
+            _connectionString = StaticUtil.CryptoHelper.DecryptString(newConnectionString);
             if (newConnectionString.DatabaseType != DbTypeEnum.None)
                 _databaseTypeIndex = (int)newConnectionString.DatabaseType;
             DbModel = InitializeDbModel();

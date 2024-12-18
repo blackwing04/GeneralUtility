@@ -66,7 +66,7 @@ namespace ExcelToolStandard.Services
                             workSheet = workBook.Worksheet(1);
                         else
                             workSheet = workBook.Worksheet(excelInfo.WorkSheetName);
-                        //處理Excle工作頁內容到模型中
+                        //處理Excel工作頁內容到模型中
                         ExcelContent.ProcessWorksheet(workSheet, excelInfo.ExcelMapper, importModel, excelInfo.FirstRowIsHeader);
                     }
                 });

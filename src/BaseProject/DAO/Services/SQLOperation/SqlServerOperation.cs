@@ -72,7 +72,7 @@ namespace DAO.Services.SQLOperation
         public async Task<DbQueryResultModel<int>> OperationNonQueryTransactionAsync(DatabaseConfigureModel dbModel)
         {
             DbQueryResultModel<int> databaseResult = new();
-            using var transaction = await _connection.BeginTransactionAsync() as SqlTransaction ?? 
+            using var transaction = await _connection.BeginTransactionAsync() as SqlTransaction ??
                 throw new Exception($"{ResultString.TransactionTransformFailedOrEmpty}SqlTransaction");
             try {
                 using SqlCommand command = _connection.CreateCommand();
@@ -99,26 +99,40 @@ namespace DAO.Services.SQLOperation
         public async Task<DbQueryResultModel<T>> OperationScalarAsync<T>(DatabaseConfigureModel dbModel)
         {
             DbQueryResultModel<T> databaseResult = new();
+            using var transaction = await _connection.BeginTransactionAsync() as SqlTransaction ??
+                throw new Exception($"{ResultString.TransactionTransformFailedOrEmpty}SqlTransaction");
             try {
                 using SqlCommand command = _connection.CreateCommand();
+                command.Transaction = transaction;
                 command.CommandText = dbModel.SqlQuery.SqlQueryText;
                 foreach (var param in dbModel.SqlQuery.Parameter) {
                     string paramName = param.Key.StartsWith("@") ? param.Key : $"@{param.Key}";
                     command.Parameters.AddWithValue(paramName, param.Value ?? DBNull.Value);
                 }
                 var result = await command.ExecuteScalarAsync();
+                // 嘗試提交事務
+                command.Transaction.Commit();
                 //設定模型狀態
-                if (result is null)
-                    ResultUtil.HandleSuccessfulResult(databaseResult, ResultString.QuerySuccessfullyButEmpty);
-                else if (result is T typedResult)
+                try {
+                    // 將 result 轉換為目標類型 
+                    if (result is null) throw new InvalidCastException();
+                    T typedResult = (T)Convert.ChangeType(result, typeof(T));
                     ResultUtil.HandleSuccessfulResult(databaseResult, ResultString.QuerySuccessfully, typedResult);
-                else
+                }
+                catch (InvalidCastException) {
+                    // 如果轉型失敗，則處理錯誤情況
                     ResultUtil.HandleFailedResult(databaseResult, ResultString.ResultConvertToGenericFailed);
+                    // 如果有錯誤發生，Rollback事務
+                    transaction.Rollback();
+                }
             }
             catch (Exception ex) {
                 string message = $"{ResultString.QueryFailed}{ex.Message}";
                 ResultUtil.HandleFailedResult(databaseResult, message, ex);
+                // 如果有錯誤發生，Rollback事務
+                transaction.Rollback();
             }
+
             return databaseResult;
         }
 
