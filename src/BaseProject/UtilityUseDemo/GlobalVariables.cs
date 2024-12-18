@@ -41,7 +41,6 @@ namespace UtilityUseDemo
         public static int CurrentDTNodeIndex { get; set; }
 
         private static bool _edited;
-
         /// /// <summary>
         /// 紀錄是否有修改
         /// </summary>
@@ -97,7 +96,7 @@ namespace UtilityUseDemo
                 try {
                     if (UserRegistryKey == null) return ConnectionStringFromRegistry;
                     var o = UserRegistryKey.GetValue(ConnStringRegistryValueName);
-                    if (o != null) ConnectionStringFromRegistry = CryptoHelper.DecryptKey(o.ToString()!);
+                    if (o != null) ConnectionStringFromRegistry = CryptokiHelper.Decrypt(o.ToString()!);
                 }
                 catch (Exception e) {
                     LoggerHelper<GlobalVariables>.HandleError(e);
@@ -111,7 +110,6 @@ namespace UtilityUseDemo
                     if (string.IsNullOrEmpty(value)) return;
                     // encrypt ConnectionString string and save it to registry
                     var encryptedString = CryptokiHelper.Encrypt(value);
-                    var encryptedString = CryptoHelper.Encrypted(value);
                     var key = UserRegistryKey;
 
                     if (key != null) {
@@ -122,7 +120,6 @@ namespace UtilityUseDemo
                 }
                 catch (Exception e) {
                     LoggerHelper<GlobalVariables>.HandleError(e);
-                    LogHelper<GlobalVariables>.HandleError(e);
                 }
             }
         }
