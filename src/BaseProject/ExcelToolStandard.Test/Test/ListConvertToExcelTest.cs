@@ -1,6 +1,4 @@
-﻿using ExcelToolStandard.Test;
-
-namespace ExcelTool.Test;
+﻿namespace ExcelToolStandard.Test;
 
 public class ListConvertToExcelTest
 {

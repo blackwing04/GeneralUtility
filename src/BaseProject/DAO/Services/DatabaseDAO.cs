@@ -225,14 +225,18 @@ namespace DAO.Services
                 await CloseConnectionAsync();
             }
         }
-        public async Task<DbQueryResultModel<int>> OperationNonQueryTransactionAsync(SqlQueryModel sqlQuery)
+        public async Task<DbQueryResultModel<int>> OperationNonQueryAsync(SqlQueryModel sqlQuery, bool NeedTransaction = true)
         {
             try {
                 if (string.IsNullOrWhiteSpace(sqlQuery.SqlQueryText)) throw new ArgumentException(ResultString.SqlQueryIsEmpty);
                 DbModel.SqlQuery = sqlQuery;
                 await OpenConnectionAsync();
                 var handler = OperationFactory.GetOperationHandler(DbModel.DatabaseType,DbModel.DbConnection);
-                var result = await handler.OperationNonQueryTransactionAsync(DbModel);
+                DbQueryResultModel<int> result;
+                if (NeedTransaction)
+                    result = await handler.OperationNonQueryTransactionAsync(DbModel);
+                else
+                    result = await handler.OperationNonQueryAsync(DbModel);
                 if (!result.IsOperationSuccessful) throw new Exception(result.ResultString, result.InnerException);
                 return result;
             }

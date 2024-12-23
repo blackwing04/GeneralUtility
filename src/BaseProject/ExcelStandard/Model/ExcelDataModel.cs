@@ -38,6 +38,7 @@ namespace ExcelToolStandard.StaticUtil.Models
 
     }
     #endregion 轉換匯入模型
+
     #region 通用
     /// <summary>
     /// Excel通用模組，用於封裝Excel資訊
@@ -119,6 +120,7 @@ namespace ExcelToolStandard.StaticUtil.Models
         }
     }
     #endregion 通用
+
     #region 模擬單元測試
     public class TempExcel
     {

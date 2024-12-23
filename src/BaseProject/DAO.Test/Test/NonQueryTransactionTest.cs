@@ -35,7 +35,7 @@ public class NonQueryTransactionTest
         databaseDAO.SetMockConnection(mockDbConnection.Object, objectModel);
         
         // Act
-        var result = await databaseDAO.OperationNonQueryTransactionAsync(SqlQuery);
+        var result = await databaseDAO.OperationNonQueryAsync(SqlQuery);
 
         // Assert
         Assert.True(result.IsOperationSuccessful);
@@ -46,7 +46,7 @@ public class NonQueryTransactionTest
         mockDbConnection.Verify(m => m.CloseAsync(), Times.Once);
     }
     /// <summary>
-    /// 模擬執行指令(不返回資料)發生事物為空的結果
+    /// 模擬執行指令(不返回資料)發生事務為空的結果
     /// </summary>
     [Fact]
     public async Task NonQueryTransactionTestAsync_NonQueryTransactionTest_ReturnsTransactionFailedOrEmpty()
@@ -69,7 +69,7 @@ public class NonQueryTransactionTest
         databaseDAO.SetMockConnection(mockDbConnection.Object, objectModel);
 
         // Act
-        var result = await Assert.ThrowsAsync<Exception>(()=>databaseDAO.OperationNonQueryTransactionAsync(SqlQuery));
+        var result = await Assert.ThrowsAsync<Exception>(()=>databaseDAO.OperationNonQueryAsync(SqlQuery));
 
         // Assert
         Assert.Equal(exMessage, result.Message);
@@ -102,7 +102,7 @@ public class NonQueryTransactionTest
         databaseDAO.SetMockConnection(mockDbConnection.Object, objectModel);
 
         // Act
-        var result = await Assert.ThrowsAsync<Exception>(()=>databaseDAO.OperationNonQueryTransactionAsync(SqlQuery));
+        var result = await Assert.ThrowsAsync<Exception>(()=>databaseDAO.OperationNonQueryAsync(SqlQuery));
 
         // Assert
         Assert.Equal($"{ResultString.TransactionFailed}{exMessage}", result.Message);

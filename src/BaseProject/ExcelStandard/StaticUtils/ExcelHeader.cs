@@ -7,7 +7,7 @@ using ExcelCustomizeException;
 using Generic.StaticUtil;
 using ExcelToolStandard.StaticUtil.Models;
 
-namespace ExcelToolStandard.StaticUtil
+namespace ExcelToolStandard.StaticUtils
 {
     public static class ExcelHeader
     {

@@ -7,6 +7,7 @@ using System.Data.Common;
 using System.Text;
 using System.Transactions;
 using static Generic.StaticUtil.Models.DataModel;
+using System.Data.SqlClient;
 
 namespace DAO.Services.SQLOperation
 {
@@ -90,6 +91,26 @@ namespace DAO.Services.SQLOperation
             catch (Exception ex) {
                 // 如果有錯誤發生，Rollback事務
                 await transaction.RollbackAsync();
+                string message = $"{ResultString.TransactionFailed}{ex.Message}";
+                ResultUtil.HandleFailedResult(databaseResult, message, ex);
+            }
+            return databaseResult;
+        }
+
+        public async Task<DbQueryResultModel<int>> OperationNonQueryAsync(DatabaseConfigureModel dbModel)
+        {
+            DbQueryResultModel<int> databaseResult = new();
+            try {
+                using SqliteCommand command = _connection.CreateCommand();
+                command.CommandText = dbModel.SqlQuery.SqlQueryText;
+                foreach (var param in dbModel.SqlQuery.Parameter) {
+                    string paramName = param.Key.StartsWith("@") ? param.Key : $"@{param.Key}";
+                    command.Parameters.AddWithValue(paramName, param.Value ?? DBNull.Value);
+                }
+                int rowsAffected = await command.ExecuteNonQueryAsync();
+                ResultUtil.HandleSuccessfulResult(databaseResult, ResultString.QuerySuccessfully, rowsAffected);
+            }
+            catch (Exception ex) {
                 string message = $"{ResultString.TransactionFailed}{ex.Message}";
                 ResultUtil.HandleFailedResult(databaseResult, message, ex);
             }

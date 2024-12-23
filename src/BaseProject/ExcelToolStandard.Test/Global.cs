@@ -6,6 +6,7 @@ global using System.Data;
 global using CustomizeException;
 global using ExcelToolStandard.Services;
 global using ExcelToolStandard.StaticUtil.Models;
+global using ExcelToolStandard.StaticUtils;
 using ClosedXML.Excel;
 
 namespace ExcelToolStandard.Test
@@ -16,69 +17,75 @@ namespace ExcelToolStandard.Test
         internal const string sheetName= "TestSheetName";
 
         /// <summary>
-        /// Àò¨úÄæ¦ìµ²ºc¡C
+        /// ç²å–æ¬„ä½çµæ§‹ã€‚
         /// </summary>
-        /// <returns>ªğ¦^Äæ¦ìµ²ºc¦Cªí¡C</returns>
+        /// <returns>è¿”å›æ¬„ä½çµæ§‹åˆ—è¡¨ã€‚</returns>
         internal static List<SchemaColumnModel> GetSchemaColumns()
         {
             return new List<SchemaColumnModel>
             {
                 new SchemaColumnModel { ColumnName = "StringCol", DataType = typeof(string), Unique = true },
                 new SchemaColumnModel { ColumnName = "IntCol", DataType = typeof(int), AllowNulls = false },
-                new SchemaColumnModel { ColumnName = "DoubleCol", DataType = typeof(double), 
+                new SchemaColumnModel { ColumnName = "IntIsNonNegativeCol", DataType = typeof(int),IsNonNegative = true,
+                    AllowNulls = false },
+                new SchemaColumnModel { ColumnName = "IntIsPositiveCol", DataType = typeof(int),IsPositive = true,
+                    AllowNulls = false },
+                new SchemaColumnModel { ColumnName = "DoubleCol", DataType = typeof(double),
                     DefaultValue = "0.01", AllowNulls = false },
                 new SchemaColumnModel { ColumnName = "DateTimeCol", DataType = typeof(DateTime) }
             };
         }
         /// <summary>
-        /// Àò¨úÄæ¦ì¬M®g¡C
+        /// ç²å–æ¬„ä½æ˜ å°„ã€‚
         /// </summary>
-        /// <returns>ªğ¦^Äæ¦ì¬M®g¦r¨å¡C</returns>
+        /// <returns>è¿”å›æ¬„ä½æ˜ å°„å­—å…¸ã€‚</returns>
         internal static Dictionary<string, string> GetColumnMapping()
         {
             return new Dictionary<string, string>
             {
                 { "TestStringAndUnique", "StringCol" },
                 { "TestIntAndNotAllowNulls", "IntCol" },
+                { "TestIntAndIsNonNegative", "IntIsNonNegativeCol" },
+                { "TestIntAndIsPositive", "IntIsPositiveCol" },
                 { "TestDouble", "DoubleCol" },
                 { "TestDateTime", "DateTimeCol" }
             };
         }
 
         /// <summary>
-        /// Àò¨ú¥ş³¡¤º®e¡C
+        /// ç²å–å…¨éƒ¨å…§å®¹ã€‚
         /// </summary>
-        /// <returns>ªğ¦^¤º®e¦Cªí¡C</returns>
+        /// <returns>è¿”å›å…§å®¹åˆ—è¡¨ã€‚</returns>
         internal static List<List<string>> GetContents()
         {
             return new List<List<string>>
             {
-                new List<string> { "TestStringContent1", "123", "45.67", "2024-07-11" },
-                new List<string> { "TestStringContent2", "123", "0.01", "" }
+                new List<string> { "TestStringContent1", "123","0","1", "45.67", "2024-07-11" },
+                new List<string> { "TestStringContent2", "123","1","2", "0.01", "" }
             };
         }
 
         /// <summary>
-        /// ±N¤º®eÂà´«¬°DataTable¡C
+        /// å°‡å…§å®¹è½‰æ›ç‚ºDataTableã€‚
         /// </summary>
-        /// <param name="schemaColumns">¼Ò¦¡¦Cªº¦Cªí¡A¥Î©ó©w¸q¨C¦Cªº¼Æ¾Úµ²ºc¡C</param>
-        /// <param name="contents">¨C¦æªº¼Æ¾Ú¡C</param>
-        /// <returns>¥Í¦¨ªºDataTable¡C</returns>
+        /// <param name="schemaColumns">æ¨¡å¼åˆ—çš„åˆ—è¡¨ï¼Œç”¨æ–¼å®šç¾©æ¯åˆ—çš„æ•¸æ“šçµæ§‹ã€‚</param>
+        /// <param name="contents">æ¯è¡Œçš„æ•¸æ“šã€‚</param>
+        /// <returns>ç”Ÿæˆçš„DataTableã€‚</returns>
         internal static DataTable CreateDataTable(List<SchemaColumnModel> schemaColumns, List<List<string>> contents)
         {
             DataTable dataTable = new();
 
-            // ²K¥[¦C¨ìDataTable
+            // æ·»åŠ åˆ—åˆ°DataTable
             foreach (var schema in schemaColumns) {
                 dataTable.Columns.Add(schema.ColumnName, schema.DataType);
             }
 
-            // ²K¥[¦æ¨ìDataTable
+            // æ·»åŠ è¡Œåˆ°DataTable
             foreach (var content in contents) {
                 DataRow row = dataTable.NewRow();
                 for (int i = 0; i < content.Count; i++) {
                     if (string.IsNullOrEmpty(content[i])) {
-                        // ¦pªG¤º®e¬°ªÅ¡A³]¸m¬° DBNull
+                        // å¦‚æœå…§å®¹ç‚ºç©ºï¼Œè¨­ç½®ç‚º DBNull
                         row[i] = DBNull.Value;
                     }
                     else {
@@ -92,17 +99,17 @@ namespace ExcelToolStandard.Test
         }
 
         /// <summary>
-        /// ¤ñ¹ï Excel ¤å¥ó©M ListConvertExcelModel ªº¤º®e¡C
+        /// æ¯”å° Excel æ–‡ä»¶å’Œ ListConvertExcelModel çš„å…§å®¹ã€‚
         /// </summary>
-        /// <param name="model">¦CªíÂà´«¦¨ Excel ªº¼Ò«¬</param>
-        /// <param name="filePath">Excel ¤å¥óªº¸ô®|</param>
-        /// <returns>¦pªG¤º®e¤@­P¡Aªğ¦^ True¡A§_«hªğ¦^ False¡C</returns>
+        /// <param name="model">åˆ—è¡¨è½‰æ›æˆ Excel çš„æ¨¡å‹</param>
+        /// <param name="filePath">Excel æ–‡ä»¶çš„è·¯å¾‘</param>
+        /// <returns>å¦‚æœå…§å®¹ä¸€è‡´ï¼Œè¿”å› Trueï¼Œå¦å‰‡è¿”å› Falseã€‚</returns>
         public static bool CompareExcelWithListModel(ListConvertExcelModel model, string filePath)
         {
             using var workbook = new XLWorkbook(filePath);
             var worksheet = workbook.Worksheet(model.SheetName);
 
-            // ¤ñ¹ïªíÀY¡A¦pªG¦³ªº¸Ü
+            // æ¯”å°è¡¨é ­ï¼Œå¦‚æœæœ‰çš„è©±
             if (model.Header != null && model.Header.Count > 0) {
                 for (int colIndex = 0; colIndex < model.Header.Count; colIndex++) {
                     string expectedHeader = model.Header[colIndex];
@@ -113,11 +120,11 @@ namespace ExcelToolStandard.Test
                 }
             }
 
-            // ¤ñ¹ï¤º®e
+            // æ¯”å°å…§å®¹
             for (int rowIndex = 0; rowIndex < model.ContentList.Count; rowIndex++) {
                 for (int colIndex = 0; colIndex < model.ContentList[rowIndex].Count; colIndex++) {
                     string expectedValue = model.ContentList[rowIndex][colIndex];
-                    // ¯Á¤Ş°¾²¾¶q+2¦]¬°Excel±q1¶}©l¥B²Ä¤@¦æ¬OªíÀY
+                    // ç´¢å¼•åç§»é‡+2å› ç‚ºExcelå¾1é–‹å§‹ä¸”ç¬¬ä¸€è¡Œæ˜¯è¡¨é ­
                     string actualValue = worksheet.Cell(rowIndex + 2, colIndex + 1).Value.ToString();
                     if (expectedValue != actualValue) {
                         return false;

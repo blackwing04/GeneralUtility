@@ -108,7 +108,26 @@ namespace DAO.Services.SQLOperation
             }
             return await Task.FromResult(databaseResult);
         }
+        public async Task<DbQueryResultModel<int>> OperationNonQueryAsync(DatabaseConfigureModel dbModel)
+        {
+            DbQueryResultModel<int> databaseResult = new();
+            try {
+                if (dbModel.MockObject.IsTestingError)
+                    throw new Exception(dbModel.MockObject.ErrorMessage);
 
+                using DbCommand command = dbModel.MockObject.MockDbCommand;
+                FormatAndSetParameters(command, dbModel.SqlQuery.Parameter);
+                var cancellationToken = new CancellationToken(false);
+                int rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken);
+                //設定模型狀態
+                ResultUtil.HandleSuccessfulResult(databaseResult, ResultString.TransactionSuccessfully, rowsAffected);
+            }
+            catch (Exception ex) {
+                string message = $"{ResultString.TransactionFailed}{ex.Message}";
+                ResultUtil.HandleFailedResult(databaseResult, message, ex);
+            }
+            return await Task.FromResult(databaseResult);
+        }
         public async Task<DbQueryResultModel<DataSet>> OperationReaderAsync(DatabaseConfigureModel dbModel)
         {
             DbQueryResultModel<DataSet> databaseResult = new();

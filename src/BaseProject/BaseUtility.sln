@@ -13,8 +13,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelToolStandard", "ExcelS
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelTool", "ExcelTool\ExcelTool.csproj", "{19204DDB-3418-4062-8EEC-B080A6F95BFE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UtilityUseDemo", "UtilityUseDemo\UtilityUseDemo.csproj", "{97D75293-5BEF-4C5E-8F6F-C1036B979335}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelTool.Test", "ExcelTool.Test\ExcelTool.Test.csproj", "{FEFB14C3-C912-4E0A-9DE0-D6BA9528F612}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DAOStandard.Test", "DAOStandard.Test\DAOStandard.Test.csproj", "{9BFB33E6-D13F-41BE-8B54-45D859E4C1E1}"
@@ -51,10 +49,6 @@ Global
 		{19204DDB-3418-4062-8EEC-B080A6F95BFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{19204DDB-3418-4062-8EEC-B080A6F95BFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{19204DDB-3418-4062-8EEC-B080A6F95BFE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{97D75293-5BEF-4C5E-8F6F-C1036B979335}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{97D75293-5BEF-4C5E-8F6F-C1036B979335}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{97D75293-5BEF-4C5E-8F6F-C1036B979335}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{97D75293-5BEF-4C5E-8F6F-C1036B979335}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FEFB14C3-C912-4E0A-9DE0-D6BA9528F612}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FEFB14C3-C912-4E0A-9DE0-D6BA9528F612}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FEFB14C3-C912-4E0A-9DE0-D6BA9528F612}.Release|Any CPU.ActiveCfg = Release|Any CPU

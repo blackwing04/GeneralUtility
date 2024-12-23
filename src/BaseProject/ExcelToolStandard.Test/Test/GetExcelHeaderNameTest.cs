@@ -1,6 +1,4 @@
-﻿using ExcelToolStandard.StaticUtil;
-
-namespace ExcelToolStandard.Test;
+﻿namespace ExcelToolStandard.Test;
 
 public class GetExcelHeaderNameTest
 {

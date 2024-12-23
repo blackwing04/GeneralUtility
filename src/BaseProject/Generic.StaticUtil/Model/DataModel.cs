@@ -28,6 +28,8 @@ namespace Generic.StaticUtil.Models
         /// </summary>
         public class SchemaColumnModel
         {
+            private bool _isNonNegative;
+            private bool _isPositive;
             /// <summary>
             /// 欄位名稱
             /// </summary>
@@ -52,6 +54,35 @@ namespace Generic.StaticUtil.Models
             /// 允許空值
             /// </summary>
             public bool AllowNulls { get; set; } = true;
+            /// <summary>
+            /// 必須大於等於0
+            /// </summary>
+            public bool IsNonNegative
+            {
+                get => _isNonNegative;
+                set
+                {
+                    if (value && _isPositive) {
+                        throw new InvalidOperationException("IsNonNegative and IsPositive cannot be true at the same time.");
+                    }
+                    _isNonNegative = value;
+                }
+            }
+            /// <summary>
+            /// 必須大於0
+            /// </summary>
+            public bool IsPositive
+            {
+                get => _isPositive;
+                set
+                {
+                    if (value && _isNonNegative) {
+                        throw new InvalidOperationException("IsNonNegative and IsPositive cannot be true at the same time.");
+                    }
+                    _isPositive = value;
+                }
+            }
+
         }
     }
 }

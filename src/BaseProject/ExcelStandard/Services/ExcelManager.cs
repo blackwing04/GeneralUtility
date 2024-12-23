@@ -1,6 +1,6 @@
 ﻿using ClosedXML.Excel;
 using CustomizeException;
-using ExcelToolStandard.StaticUtil;
+using ExcelToolStandard.StaticUtils;
 using ExcelCustomizeException;
 using ExcelToolStandard.StaticUtil.Models;
 using System;

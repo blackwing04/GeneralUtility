@@ -28,6 +28,7 @@
         /// </summary>
         public const string ResultConvertToGenericFailed ="Result object convert to generic T failed.";
         #endregion 錯誤
+
         #region 連線操作
         /// <summary>
         /// 切換資料庫成功
@@ -54,6 +55,7 @@
         /// </summary>
         public const string ConnectionCloseFailed ="Failed to close connection. Error:";
         #endregion 連線操作
+
         #region 資料庫操作
         /// <summary>
         /// 資料庫已經存在
@@ -132,6 +134,7 @@
         /// </summary>
         public const string ExecutedStoredProcedureFailed = "Stored procedure execution failed: ";
         #endregion 資料庫操作
+
         #region 參數有問題的例外
         /// <summary>
         /// 事務無法轉換成目標事務或是事務為空(後方自行帶轉換甚麼類型失敗)

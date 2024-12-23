@@ -23,6 +23,10 @@ namespace DAOStandard.Services.SQLOperation
         /// </summary>
         Task<DbQueryResultModel<int>> OperationNonQueryTransactionAsync(DatabaseConfigureModel dbModel);
         /// <summary>
+        /// 執行指令(不返回資料)
+        /// </summary>
+        Task<DbQueryResultModel<int>> OperationNonQueryAsync(DatabaseConfigureModel dbModel);
+        /// <summary>
         /// 執行指令並將單一資料封裝進模型的Result中
         /// </summary>
         /// <typeparam name="T">指定Result的類型</typeparam>

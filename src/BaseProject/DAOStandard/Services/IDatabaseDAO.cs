@@ -56,9 +56,10 @@ namespace DAOStandard.Services
         /// 執行指令(不返回資料)並提交事務
         /// </summary>
         /// <param name="sqlQuery">Sql語句模型</param>
+        /// <param name="NeedTransaction">是否需要以事務方式執行</param>
         /// <remarks>當SQL查詢中有參數時，請盡量用 SqlQueryModel 的 Parameter 屬性傳遞參數值。</remarks>
         /// <returns>資料庫操作結果，模型結果紀錄多少行受到影響</returns>
-        Task<DbQueryResultModel<int>> OperationNonQueryTransactionAsync(SqlQueryModel sqlQuery);
+        Task<DbQueryResultModel<int>> OperationNonQueryAsync(SqlQueryModel sqlQuery, bool NeedTransaction = true);
         /// <summary>
         /// 執行指令並將單一資料封裝進模型的Result中
         /// </summary>

@@ -86,6 +86,19 @@ namespace ConvertCustomizeException
         {
         }
     }
+    /// <summary>
+    /// 不合法的數字
+    /// </summary>
+    public class InvalidNumberFormatException : Exception
+    {
+        /// <summary>
+        /// 不合法的數字
+        /// </summary>
+        public InvalidNumberFormatException()
+            : base("Invalid number format: unable to process the value as a valid number.")
+        {
+        }
+    }
 }
 
 

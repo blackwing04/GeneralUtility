@@ -85,6 +85,7 @@ namespace DAOStandard.Services
             return dbModel;
         }
         #endregion 建構式
+
         #region 資料庫連線方法
         public void ChangeDatabaseConnection(CryptoConnectionStringModel newConnectionString)
         {
@@ -196,6 +197,7 @@ namespace DAOStandard.Services
             return resul;
         }
         #endregion 資料庫連線方法
+
         #region 資料交互方法
         public async Task<NonQueryResultModel> CheckDataTableExistsAsync(TableSchemaModel tableSchema)
         {
@@ -214,14 +216,18 @@ namespace DAOStandard.Services
                 CloseConnection();
             }
         }
-        public async Task<DbQueryResultModel<int>> OperationNonQueryTransactionAsync(SqlQueryModel sqlQuery)
+        public async Task<DbQueryResultModel<int>> OperationNonQueryAsync(SqlQueryModel sqlQuery, bool NeedTransaction = true)
         {
             try {
                 if (string.IsNullOrWhiteSpace(sqlQuery.SqlQueryText)) throw new ArgumentException(ResultString.SqlQueryIsEmpty);
                 DbModel.SqlQuery = sqlQuery;
                 await OpenConnectionAsync();
                 var handler = OperationFactory.GetOperationHandler(DbModel.DatabaseType,DbModel.DbConnection);
-                var result = await handler.OperationNonQueryTransactionAsync(DbModel);
+                DbQueryResultModel<int> result;
+                if (NeedTransaction)
+                    result = await handler.OperationNonQueryTransactionAsync(DbModel);
+                else
+                    result = await handler.OperationNonQueryAsync(DbModel);
                 if (!result.IsOperationSuccessful) throw new Exception(result.ResultString);
                 return result;
             }
@@ -336,6 +342,7 @@ namespace DAOStandard.Services
             }
         }
         #endregion 資料交互方法
+
         #region 其他方法
         /// <summary>
         /// 重置資料庫模型查詢物件
