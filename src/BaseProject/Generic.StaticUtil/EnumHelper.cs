@@ -85,5 +85,24 @@ namespace Generic.StaticUtil
             return Enum.IsDefined(typeof(TEnum), value);
         }
 
+        /// <summary>
+        /// 將整數安全轉換為 Enum
+        /// </summary>
+        public static T ValueToEnum<T>(int value) where T : struct, Enum
+        {
+            if (Enum.IsDefined(typeof(T), value))
+                return (T)(object)value;
+            else
+                throw new ArgumentException($"無效的值 {value} 對於 {typeof(T).Name}");
+        }
+
+        /// <summary>
+        /// 嘗試轉換，失敗時回傳預設值
+        /// </summary>
+        public static T ValueToEnumOrDefault<T>(int value, T defaultValue = default) where T : struct, Enum
+        {
+            return Enum.IsDefined(typeof(T), value) ? (T)(object)value : defaultValue;
+        }
+
     }
 }
