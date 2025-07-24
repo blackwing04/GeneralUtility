@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
 
 namespace Generic.StaticUtil
 {
     /// <summary>
-    /// 提供通用的枚舉解析方法
+    /// 提供通用的枚舉幫助類
     /// </summary>
-    public static class EnumParser
+    public static class EnumHelper
     {
         /// <summary>
         /// 解析字串為指定的列舉類型
@@ -51,5 +53,6 @@ namespace Generic.StaticUtil
 
             return sortedDict;
         }
+
     }
 }
